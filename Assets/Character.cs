@@ -30,9 +30,5 @@ public class Character
     public void ApplyMaxSpeedCap()
     {
         velocity = Vector3.ClampMagnitude(velocity, maxSpeed);
-
-
-
-
     }
 }
