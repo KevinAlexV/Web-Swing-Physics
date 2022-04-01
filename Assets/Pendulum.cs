@@ -5,7 +5,7 @@ using UnityEngine;
 [System.Serializable]
 public class Pendulum { 
 
-    public Transform chr_trasnform;
+    public Transform chr_transform;
     public Tether tether;
     public Arm arm;
     public Character character;
@@ -15,8 +15,8 @@ public class Pendulum {
     public void Initialize()
     {
 
-        chr_trasnform.parent = tether.tether_tr;
-        arm.length = Vector3.Distance(chr_trasnform.transform.localPosition, tether.position);
+        chr_transform.parent = tether.tether_tr;
+        arm.length = Vector3.Distance(chr_transform.transform.localPosition, tether.position);
 
     }
 
@@ -58,6 +58,17 @@ public class Pendulum {
         }
 
         return Vector3.zero;
+    }
+
+    public void SwitchTether(Vector3 newPosition)
+    {
+        chr_transform.transform.parent = null;
+        tether.tether_tr.position = newPosition;
+
+        chr_transform.transform.parent = tether.tether_tr;
+
+        tether.position = tether.tether_tr.InverseTransformDirection(newPosition);
+        arm.length = Vector3.Distance(chr_transform.transform.localPosition, tether.position);
     }
 
 }
