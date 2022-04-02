@@ -3,10 +3,8 @@ using UnityEngine;
 public class BasicPendulumBehavior : MonoBehaviour
 {
     [Header("GameObjects")]
-    [SerializeField]
-    private Transform pivot;
-    [SerializeField]
-    private Transform bob;
+    public Transform pivot;
+    public Transform bob;
 
     [Header("Position Data")]
     [SerializeField]
