@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class BasicPendulumBehavior : MonoBehaviour
@@ -15,52 +17,59 @@ public class BasicPendulumBehavior : MonoBehaviour
     private float stringLength = 3.0f;
     [SerializeField]
     private float bobMass = 1.0f;
-    
+
     [Header("Forces")]
     [SerializeField]
     private float gravityForce = 0.0f;
     [SerializeField]
     private Vector3 gravityDirection;
-    [SerializeField]    
+    [SerializeField]
     private float tensionForce = 0.0f;
     [SerializeField]
     private Vector3 tensionDirection;
     [Space]
     [SerializeField]
     private Vector3 velocityVector = new Vector3();
+    [SerializeField]
+    private Vector3 netForceVector = new Vector3();
 
+    private List<Vector3> forceVectorList = new List<Vector3>();
     private Vector3 bobDistanceVector;
+    private bool isOnPendulum = false, applyTension = false;
 
+
+    //Initialize basic pendulum behavior.
     private void Start()
-    { 
+    {
         startingPosition = bob.transform.position;
+
+        isOnPendulum = true;
 
         ResetForces();
     }
 
+    //Per physics calculation
     private void FixedUpdate()
     {
         Vector3 gravityVector = CalculateGravityForce();
 
-        // Apply gravity to the velocity vector
-        velocityVector += gravityVector * Time.deltaTime;
+        // Add gravity to the net forces
+        forceVectorList.Add(gravityVector);
 
-        Vector3 movement = velocityVector * Time.deltaTime;
-        float distanceAfterGravity = Vector3.Distance(pivot.position, bob.position + movement);
+        //How far has it moved since velocity, which is only affected by gravity at the moment. Later, probably should be affected by net forces at this point.
+        float distanceAfterGravity = Vector3.Distance(pivot.position, bob.position + gravityVector);
 
-        if (distanceAfterGravity > stringLength || Mathf.Approximately(distanceAfterGravity, stringLength))
+        if ((distanceAfterGravity > stringLength || Mathf.Approximately(distanceAfterGravity, stringLength)) && isOnPendulum)
         {
             // Calculate bob offsets
             bobDistanceVector = bob.position - pivot.position;
 
-            Vector3 tensionForce = CalculateTensionForce();
-
-            // Account for rotational acceleration on the pendulum (Ft = Ft + Fc)
-            tensionForce += CalculateCentripetalForce();
-
-            // Apply tension to the velocity vector 
-            velocityVector += tensionForce * Time.deltaTime;
+            applyTension = true;
         }
+        else { applyTension = false; }
+
+
+        CalculateNetForces();
 
         /**
          * Note on normalizing vectors:
@@ -75,26 +84,61 @@ public class BasicPendulumBehavior : MonoBehaviour
          * Set bob's position to be the pivot position offset by the web's length
          *   - Dispersing directional data (Normalize) to the web length
          */
-
         // Retrieve bob's position with velocity vector applied
-        Vector3 newBobPosition = bob.position + (velocityVector * Time.deltaTime);
+        Vector3 newBobPosition = bob.position + velocityVector;
 
         // Calculate the raw length of the new web from the transformed position
         float newWebLength = Vector3.Distance(pivot.position, newBobPosition);
 
+        //Calculate the correct web length, based on if the current length is longer than the max length.
         float correctWebLength = newWebLength <= stringLength ? newWebLength : stringLength;
         Vector3 vec3WebLength = newBobPosition - pivot.position;
 
+        //Calculate bobs position by going from the pivot position, and adding the web's position
         bob.position = pivot.position + (correctWebLength * Vector3.Normalize(vec3WebLength));
     }
 
+    //Calculate all forces acting on the object
+    private void CalculateNetForces()
+    {
+        // Sum the forces and clear the list
+        netForceVector = Vector3.zero;
+        foreach (Vector3 forceVector in forceVectorList)
+        {
+            netForceVector = netForceVector + forceVector;
+        }
+        forceVectorList = new List<Vector3>();
+
+        // Calculate position change due to net force
+        Vector3 accelerationVector = (netForceVector / bobMass);
+        velocityVector += accelerationVector * Time.deltaTime;
+
+
+        //If the object isOnPendulum, account for tension and cent. force
+        if (isOnPendulum && applyTension)
+        {
+            Vector3 tensionForce = CalculateTensionForce();
+
+            // Account for rotational acceleration on the pendulum (Ft = Ft + Fc), when pendulum is moving, and not initial pendulum calcs.
+            tensionForce += CalculateCentripetalForce(velocityVector);
+
+            // Apply tension to the netforce vector 
+            netForceVector += tensionForce;
+
+            Vector3 tensionAcceleration = tensionForce / bobMass;
+            velocityVector += tensionAcceleration * Time.deltaTime;
+        }
+    }
+
+
+    //Calculate gravity at the current time, and return vector3 containing gravity.
     private Vector3 CalculateGravityForce()
     {
         // F = m * g
         gravityForce = bobMass * Physics.gravity.magnitude;
         gravityDirection = Physics.gravity.normalized;
 
-        return gravityForce * gravityDirection;
+        return gravityForce * gravityDirection * Time.deltaTime;
     }
 
     private Vector3 CalculateTensionForce()
@@ -116,20 +160,27 @@ public class BasicPendulumBehavior : MonoBehaviour
 
         float theta = Vector3.Angle(bobDistanceVector, gravityDirection);
 
-        // Ft = mg * cos(theta)
-        tensionForce = bobMass * Physics.gravity.magnitude * Mathf.Cos(Mathf.Deg2Rad * theta);
+        float cosTheta;
+    
+        if (theta != 90)
+            cosTheta = Mathf.Cos(Mathf.Deg2Rad * theta);
+        else
+            cosTheta = 0;
 
-        return tensionForce * tensionDirection;
+        // Ft = mg * cos(theta)
+        tensionForce = bobMass * Physics.gravity.magnitude * cosTheta;
+
+        return tensionForce * tensionDirection * Time.deltaTime;
     }
 
-    private Vector3 CalculateCentripetalForce() 
+    private Vector3 CalculateCentripetalForce(Vector3 velocity)
     {
         Vector3 centripetalForce = Vector3.zero;
 
         // Fc = (m * v^2) / r
-        centripetalForce.x = ((bobMass * Mathf.Pow(velocityVector.x, 2)) / stringLength);
-        centripetalForce.y = ((bobMass * Mathf.Pow(velocityVector.y, 2)) / stringLength);
-        centripetalForce.z = ((bobMass * Mathf.Pow(velocityVector.z, 2)) / stringLength);
+        centripetalForce.x = ((bobMass * Mathf.Pow(velocity.x, 2)) / stringLength);
+        centripetalForce.y = ((bobMass * Mathf.Pow(velocity.y, 2)) / stringLength);
+        centripetalForce.z = ((bobMass * Mathf.Pow(velocity.z, 2)) / stringLength);
 
         return centripetalForce;
     }
