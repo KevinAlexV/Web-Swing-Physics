@@ -53,13 +53,13 @@ public class BasicPendulumBehavior : MonoBehaviour
             // Calculate bob offsets
             bobDistanceVector = bob.position - pivot.position;
 
-            Vector3 tensionForce = CalculateTensionForce();
+            Vector3 tensionForceVec = CalculateTensionForce();
 
             // Account for rotational acceleration on the pendulum (Ft = Ft + Fc)
-            tensionForce += CalculateCentripetalForce();
+            tensionForceVec += CalculateCentripetalForce();
 
             // Apply tension to the velocity vector 
-            velocityVector += tensionForce * Time.deltaTime;
+            velocityVector += tensionForceVec * Time.deltaTime;
         }
 
         /**
@@ -77,7 +77,7 @@ public class BasicPendulumBehavior : MonoBehaviour
          */
 
         // Retrieve bob's position with velocity vector applied
-        Vector3 newBobPosition = bob.position + (velocityVector * Time.deltaTime);
+        Vector3 newBobPosition = bob.position + velocityVector;
 
         // Calculate the raw length of the new web from the transformed position
         float newWebLength = Vector3.Distance(pivot.position, newBobPosition);
@@ -116,8 +116,15 @@ public class BasicPendulumBehavior : MonoBehaviour
 
         float theta = Vector3.Angle(bobDistanceVector, gravityDirection);
 
+        float cosineTheta = Mathf.Cos(Mathf.Deg2Rad * theta);
+
+        if (theta == 90)
+            cosineTheta = 0.0f;
+
         // Ft = mg * cos(theta)
-        tensionForce = bobMass * Physics.gravity.magnitude * Mathf.Cos(Mathf.Deg2Rad * theta);
+        tensionForce = bobMass * Physics.gravity.magnitude * cosineTheta;
+
+        Debug.Log("v = " + velocityVector);
 
         return tensionForce * tensionDirection;
     }
@@ -125,6 +132,16 @@ public class BasicPendulumBehavior : MonoBehaviour
     private Vector3 CalculateCentripetalForce() 
     {
         Vector3 centripetalForce = Vector3.zero;
+
+        /** 
+         * Max Velocity Trial
+         * Ek = 1/2 * m * v^2 
+         * Ep = m * gravity * height
+         * Ek = Ep -> Energies are equal at the 'bottom' of the swing
+         *
+         * 1/2 * m * v^2 = m * gravity * height
+         * v = sqrt(m * gravity * height)
+         */
 
         // Fc = (m * v^2) / r
         centripetalForce.x = ((bobMass * Mathf.Pow(velocityVector.x, 2)) / stringLength);
@@ -157,7 +174,7 @@ public class BasicPendulumBehavior : MonoBehaviour
 
         // White: Web
         Gizmos.color = new Color(0.85f, 0.95f, 0.9f);
-        Vector3 web = stringLength * new Vector3(0.0f, 1.0f, 0.0f);
+        Vector3 web = pivot.position - bob.position;
         Gizmos.DrawRay(bob.position, web);
 
         // Yellow: Gravity
