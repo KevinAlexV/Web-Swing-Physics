@@ -1,7 +1,8 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BobController : MonoBehaviour
+public class WebController : MonoBehaviour
 {
     [SerializeField]
     private BasicPendulumBehavior pendulum;
@@ -20,6 +21,19 @@ public class BobController : MonoBehaviour
                 pivotIndex++;
 
             pendulum.pivot = pivots[pivotIndex];
+
+            StartCoroutine(WebSwing());
         }        
+    }
+
+    IEnumerator WebSwing()
+    {
+        pendulum.isOnPivot = false;
+
+        yield return new WaitForSeconds(1.0f);    
+
+        pendulum.isOnPivot = true;
+
+        pendulum.webLength = Vector3.Distance(gameObject.transform.position, pendulum.pivot.position); 
     }
 }

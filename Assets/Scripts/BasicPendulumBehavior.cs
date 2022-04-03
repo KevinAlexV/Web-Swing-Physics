@@ -10,11 +10,10 @@ public class BasicPendulumBehavior : MonoBehaviour
     [SerializeField]
     private Vector3 startingPosition;
 
-    [Header("Variables")]
-    [SerializeField]
-    private float stringLength = 3.0f;
-    [SerializeField]
-    private float mass = 1.0f;
+    [Header("Public Variables")]
+    public float webLength = 3.0f;
+    public float mass = 1.0f;
+    public bool isOnPivot = false;
     
     [Header("Forces")]
     [SerializeField]
@@ -29,24 +28,24 @@ public class BasicPendulumBehavior : MonoBehaviour
     [SerializeField]
     private Vector3 velocityVector = new Vector3();
 
-    private Vector3 currentPosition;
-
     private void Start()
     { 
         startingPosition = bob.transform.position;
-        currentPosition = bob.transform.position;
 
         ResetForces();
+
+        isOnPivot = true;
     }
 
-    private void FixedUpdate()
+    private void FixedUpdate() 
     {
-        currentPosition = PendulumUpdate();
+        if (isOnPivot)
+            bob.position = UpdatePositionOnPendulum();
+        else 
+            bob.position = UpdatePositionOffPendulum();
+    } 
 
-        bob.position = currentPosition;
-    }
-
-    private Vector3 PendulumUpdate()
+    private Vector3 UpdatePositionOnPendulum()
     {
         // Apply gravity to the velocity vector
         velocityVector += CalculateGravityForce();
@@ -54,7 +53,7 @@ public class BasicPendulumBehavior : MonoBehaviour
         Vector3 auxillaryMovementVector = velocityVector * Time.fixedDeltaTime;
         float distanceAfterGravity = Vector3.Distance(pivot.position, bob.position + auxillaryMovementVector);
 
-        if (distanceAfterGravity > stringLength || Mathf.Approximately(distanceAfterGravity, stringLength))
+        if (distanceAfterGravity > webLength || Mathf.Approximately(distanceAfterGravity, webLength))
         {
             // Calculate bob offsets
             tensionDirection = (pivot.position - bob.position).normalized;
@@ -89,12 +88,23 @@ public class BasicPendulumBehavior : MonoBehaviour
         // Calculate the raw length of the new web from the transformed position
         float newWebLength = Vector3.Distance(pivot.position, bobNewPosition);
 
-        float correctWebLength = newWebLength <= stringLength ? newWebLength : stringLength;
+        float correctWebLength = newWebLength <= webLength ? newWebLength : webLength;
 
         // end - start
         Vector3 vec3WebLength = bobNewPosition - pivot.position;
 
         return pivot.position + (correctWebLength * Vector3.Normalize(vec3WebLength));
+    }
+
+    private Vector3 UpdatePositionOffPendulum()
+    {
+        // Apply gravity to the velocity vector
+        velocityVector += CalculateGravityForce();
+
+        // Store the bob's new position
+        Vector3 bobNewPosition = bob.position + (velocityVector * Time.fixedDeltaTime);
+
+        return bobNewPosition; 
     }
 
     private Vector3 CalculateGravityForce()
@@ -132,7 +142,7 @@ public class BasicPendulumBehavior : MonoBehaviour
         float centripetalForce = 0.0f;
 
         // Fc = (m * v^2) / r
-        centripetalForce = ((mass * Mathf.Pow(velocityVector.magnitude, 2)) / stringLength);
+        centripetalForce = ((mass * Mathf.Pow(velocityVector.magnitude, 2)) / webLength);
 
         return centripetalForce;
     }
@@ -156,12 +166,15 @@ public class BasicPendulumBehavior : MonoBehaviour
         float rayScaleFactor = 0.3f;
 
         Gizmos.color = new Color(0.5f, 0.0f, 0.5f);
-        Gizmos.DrawWireSphere(pivot.position, stringLength);
+        Gizmos.DrawWireSphere(pivot.position, webLength);
 
         // White: Web
-        Gizmos.color = new Color(0.85f, 0.95f, 0.9f);
-        Vector3 web = pivot.position - bob.position;
-        Gizmos.DrawRay(bob.position, web);
+        if (isOnPivot) 
+        {
+            Gizmos.color = new Color(0.85f, 0.95f, 0.9f);
+            Vector3 web = pivot.position - bob.position;
+            Gizmos.DrawRay(bob.position, web);
+        }
 
         // Yellow: Gravity
         Gizmos.color = new Color(1.0f, 1.0f, 0.1f);
