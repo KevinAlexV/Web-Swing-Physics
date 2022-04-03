@@ -17,6 +17,8 @@ public class BasicPendulumBehavior : MonoBehaviour
     private float stringLength = 3.0f;
     [SerializeField]
     private float bobMass = 1.0f;
+    [SerializeField]
+    private float theta;
 
     [Header("Forces")]
     [SerializeField]
@@ -111,14 +113,33 @@ public class BasicPendulumBehavior : MonoBehaviour
 
         // Calculate position change due to net force
         Vector3 accelerationVector = (netForceVector / bobMass);
-        velocityVector += accelerationVector * Time.deltaTime;
-
+        Vector3 tempVelo = accelerationVector * Time.deltaTime;
 
         //If the object isOnPendulum, account for tension and cent. force
         if (isOnPendulum && applyTension)
         {
-            Vector3 tensionForce = CalculateTensionForce();
+            theta = Vector3.Angle(bobDistanceVector, gravityDirection);
 
+
+
+
+
+            float sinTheta = Mathf.Sin(Mathf.Deg2Rad * theta);
+
+            Vector3 pendulumBottom = new Vector3(pivot.position.x, pivot.position.y - gravityForce, pivot.position.z);
+            Vector3 pendulumDirection = (pendulumBottom - bob.position).normalized;
+
+            //Fg + sin(theta)
+            Vector3 pendulumAcceleration = pendulumDirection * gravityForce * sinTheta;
+            //Debug.Log(gravityForce + " | " + pendulumAcceleration.x + " " + pendulumAcceleration.y + " " + pendulumAcceleration.z);
+
+            velocityVector += pendulumAcceleration * Time.deltaTime;
+
+
+
+
+            Vector3 tensionForce = CalculateTensionForce();
+            
             // Account for rotational acceleration on the pendulum (Ft = Ft + Fc), when pendulum is moving, and not initial pendulum calcs.
             tensionForce += CalculateCentripetalForce(velocityVector);
 
@@ -127,6 +148,10 @@ public class BasicPendulumBehavior : MonoBehaviour
 
             Vector3 tensionAcceleration = tensionForce / bobMass;
             velocityVector += tensionAcceleration * Time.deltaTime;
+        }
+        else
+        {
+            velocityVector += tempVelo;
         }
     }
 
@@ -158,7 +183,6 @@ public class BasicPendulumBehavior : MonoBehaviour
          *                0 = bob, * = axis, x = theta)
          */
 
-        float theta = Vector3.Angle(bobDistanceVector, gravityDirection);
 
         float cosTheta;
     
@@ -169,6 +193,8 @@ public class BasicPendulumBehavior : MonoBehaviour
 
         // Ft = mg * cos(theta)
         tensionForce = bobMass * Physics.gravity.magnitude * cosTheta;
+
+        //Debug.Log("Tension: " + tensionForce + "N | " + bobMass + "kg | " /*+ Physics.gravity.magnitude + "m/s^2 | "*/ + cosTheta + " rad cosTheta");
 
         return tensionForce * tensionDirection * Time.deltaTime;
     }
