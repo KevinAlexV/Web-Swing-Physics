@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class BasicPendulumBehavior : MonoBehaviour
@@ -20,14 +22,21 @@ public class BasicPendulumBehavior : MonoBehaviour
     [SerializeField]
     private float gravityForce = 0.0f;
     [SerializeField]
+    private Vector3 gravityForceVector;
+    [SerializeField]
     private Vector3 gravityDirection;
     [SerializeField]    
     private float tensionForce = 0.0f;
     [SerializeField]
     private Vector3 tensionDirection;
+    [SerializeField]
+    private Vector3 tensionForceVector;
     [Space]
     [SerializeField]
     private Vector3 velocityVector = new Vector3();
+    
+    private Vector3 netForceVector;  // N [kg m s^-2]
+    private List<Vector3> forces = new List<Vector3>();
 
     private Vector3 currentPosition;
 
@@ -49,7 +58,10 @@ public class BasicPendulumBehavior : MonoBehaviour
     private Vector3 PendulumUpdate()
     {
         // Apply gravity to the velocity vector
-        velocityVector += CalculateGravityForce();
+        gravityForceVector = CalculateGravityForce();
+
+        forces.Add(gravityForceVector);
+        velocityVector += gravityForceVector;
 
         Vector3 auxillaryMovementVector = velocityVector * Time.fixedDeltaTime;
         float distanceAfterGravity = Vector3.Distance(pivot.position, bob.position + auxillaryMovementVector);
@@ -66,7 +78,10 @@ public class BasicPendulumBehavior : MonoBehaviour
             tensionForce += CalculateCentripetalForce();
 
             // Apply tension to the velocity vector 
-            velocityVector += tensionDirection * tensionForce * Time.fixedDeltaTime;
+            tensionForceVector = tensionDirection * tensionForce * Time.fixedDeltaTime;
+
+            forces.Add(tensionForceVector);
+            velocityVector += tensionForceVector;
         }
 
         /**
@@ -83,6 +98,8 @@ public class BasicPendulumBehavior : MonoBehaviour
          *   - Dispersing directional data (Normalize) to the web length
          */
 
+        //CalculateNetForces();
+
         // Store the bob's new position
         Vector3 bobNewPosition = bob.position + (velocityVector * Time.fixedDeltaTime);
 
@@ -95,6 +112,22 @@ public class BasicPendulumBehavior : MonoBehaviour
         Vector3 vec3WebLength = bobNewPosition - pivot.position;
 
         return pivot.position + (correctWebLength * Vector3.Normalize(vec3WebLength));
+    }
+
+    private void CalculateNetForces()
+    {
+        // Sum the forces and clear the list
+        netForceVector = Vector3.zero;
+        foreach (Vector3 forceVector in forces)
+        {
+            netForceVector = netForceVector + forceVector;
+        }
+        forces = new List<Vector3>();
+
+        // Calculate position change due to net force
+        Vector3 accelerationVector = netForceVector;// / mass;
+        velocityVector += accelerationVector * Time.deltaTime;
+
     }
 
     private Vector3 CalculateGravityForce()
