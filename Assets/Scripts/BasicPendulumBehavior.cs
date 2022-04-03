@@ -24,9 +24,12 @@ public class BasicPendulumBehavior : MonoBehaviour
     private float tensionForce = 0.0f;
     [SerializeField]
     private Vector3 tensionDirection;
-    [Space]
+
+    [Header("Kinematics")]
     [SerializeField]
     private Vector3 velocityVector = new Vector3();
+    [SerializeField]
+    private Vector3 angularMomentum = new Vector3();
 
     private void Start()
     { 
@@ -43,6 +46,8 @@ public class BasicPendulumBehavior : MonoBehaviour
             bob.position = UpdatePositionOnPendulum();
         else 
             bob.position = UpdatePositionOffPendulum();
+
+        angularMomentum = mass * velocityVector * webLength;
     } 
 
     private Vector3 UpdatePositionOnPendulum()
