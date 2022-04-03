@@ -192,9 +192,11 @@ MonoBehaviour:
   stringLength: 10
   mass: 1
   gravityForce: 0
+  gravityForceVector: {x: 0, y: 0, z: 0}
   gravityDirection: {x: 0, y: 0, z: 0}
   tensionForce: 0
   tensionDirection: {x: 0, y: 0, z: 0}
+  tensionForceVector: {x: 0, y: 0, z: 0}
   velocityVector: {x: 0, y: 0, z: 0}
 --- !u!4 &132944807
 Transform:
@@ -223,6 +225,7 @@ GameObject:
   - component: {fileID: 174077946}
   - component: {fileID: 174077945}
   - component: {fileID: 174077944}
+  - component: {fileID: 174077947}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -295,6 +298,26 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &174077947
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 174077943}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1864b26268c298043b60ab68ba63c691, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  target: {fileID: 1902662671}
+  distance: 5
+  xSpeed: 120
+  ySpeed: 120
+  yMinLimit: -20
+  yMaxLimit: 80
+  distanceMin: 0.5
+  distanceMax: 15
 --- !u!1 &395777763
 GameObject:
   m_ObjectHideFlags: 0
@@ -1238,7 +1261,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dfe5891c8ddf52b4ba3137ef94ed65b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  RunningSpeed: 0
+  RunningSpeed: 6.22
   startingPosition: {x: 0, y: 0, z: 0}
   Mass: 1
   gravityForce: 0
