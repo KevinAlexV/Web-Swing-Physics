@@ -63,7 +63,7 @@ public class BasicPendulumBehavior : MonoBehaviour
         forces.Add(gravityForceVector);
         velocityVector += gravityForceVector;
 
-        Vector3 auxillaryMovementVector = velocityVector * Time.fixedDeltaTime;
+        Vector3 auxillaryMovementVector = gravityForceVector * Time.fixedDeltaTime;
         float distanceAfterGravity = Vector3.Distance(pivot.position, bob.position + auxillaryMovementVector);
 
         if (distanceAfterGravity > stringLength || Mathf.Approximately(distanceAfterGravity, stringLength))
