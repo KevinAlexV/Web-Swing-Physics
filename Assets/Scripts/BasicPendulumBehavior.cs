@@ -5,6 +5,7 @@ public class BasicPendulumBehavior : MonoBehaviour
     [Header("GameObjects")]
     public Transform pivot;
     public Transform bob;
+    public RunningBehavior runningMan;
 
     [Header("Position Data")]
     [SerializeField]
@@ -15,21 +16,19 @@ public class BasicPendulumBehavior : MonoBehaviour
     public float mass = 1.0f;
     public bool isOnPivot = false;
     
-    [Header("Forces")]
-    [SerializeField]
-    private float gravityForce = 0.0f;
-    [SerializeField]
-    private Vector3 gravityDirection;
-    [SerializeField]    
-    private float tensionForce = 0.0f;
-    [SerializeField]
-    private Vector3 tensionDirection;
+    [Header("Key Forces/Data")]
+    public float gravityForce = 0.0f;
+    public Vector3 gravityDirection;
+    [Space]
+    public float tensionForce = 0.0f;
+    public Vector3 tensionDirection;
+    [Space]
+    [Tooltip("Change in theta from the orientation of the targeted pivot point (in degrees)")]
+    public float deltaTheta = 0.0f;
 
     [Header("Kinematics")]
-    [SerializeField]
-    private Vector3 velocityVector = new Vector3();
-    [SerializeField]
-    private Vector3 angularMomentum = new Vector3();
+    public Vector3 velocityVector = new Vector3();
+    public Vector3 angularMomentum = new Vector3();
 
     private void Start()
     { 
@@ -136,10 +135,10 @@ public class BasicPendulumBehavior : MonoBehaviour
          *                0 = bob, * = axis, x = theta)
          */
 
-        float theta = Vector3.Angle(bob.position - pivot.position, gravityDirection);
+        deltaTheta = Vector3.Angle(bob.position - pivot.position, gravityDirection);
 
         // Ft = mg * cos(theta)
-        tensionForce = mass * Physics.gravity.magnitude * Mathf.Cos(Mathf.Deg2Rad * theta);
+        tensionForce = mass * Physics.gravity.magnitude * Mathf.Cos(Mathf.Deg2Rad * deltaTheta);
     }
 
     private float CalculateCentripetalForce() 
@@ -152,11 +151,24 @@ public class BasicPendulumBehavior : MonoBehaviour
         return centripetalForce;
     }
 
+    /**
+     * Helper Functions
+     * ContextMenus - Can be accessed and used by right clicking the 'BasicPendulumBehaviour' in the UI
+     * Gizmos - Can be turned on/off in the scene or game view
+     */
+
     [ContextMenu("Reset Position")]
-    private void ResetPosition() => bob.position = startingPosition;
+    public void ResetPosition() 
+    {
+        // Reset the bob to the starting position
+        bob.position = startingPosition;
+
+        // Reset the running man to the starting position
+        runningMan.transform.position  = runningMan.startingPosition;
+    }
 
     [ContextMenu("Reset Forces")]
-    private void ResetForces() => velocityVector = Vector3.zero;
+    public void ResetForces() => velocityVector = Vector3.zero;
 
     /**
      * Gizmos Reference

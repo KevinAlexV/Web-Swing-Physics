@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class WebController : MonoBehaviour
@@ -17,12 +18,11 @@ public class WebController : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space)) 
+        if (Input.GetKeyDown(KeyCode.RightArrow)) 
         {
             // Destroy previous web
             DestroyWeb(pivotIndex);
 
-            // Check if index needs to be reset
             if (pivotIndex == (pivots.Count - 1)) 
                 pivotIndex = 0;
             else 
@@ -81,4 +81,18 @@ public class WebController : MonoBehaviour
     }
 
     private void DestroyWeb(int index) => webRenderers[index].enabled = false;
+
+    public void ResetPivot() 
+    { 
+        // Disable all webs in the scene
+        webRenderers.ForEach((x) => {
+            x.enabled = false;
+        });
+
+        pivotIndex = 0;
+        pendulum.pivot = pivots[pivotIndex].transform;
+
+        // Recalculate the web length
+        pendulum.webLength = Vector3.Distance(gameObject.transform.position, pendulum.pivot.position); 
+    }
 }

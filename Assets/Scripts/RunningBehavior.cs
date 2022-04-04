@@ -12,8 +12,7 @@ public class RunningBehavior : MonoBehaviour
     private float RunningSpeed;
 
     [Header("Position Data")]
-    [SerializeField]
-    private Vector3 startingPosition;
+    public Vector3 startingPosition;
 
     [Header("Variables")]
     [SerializeField]
@@ -32,13 +31,11 @@ public class RunningBehavior : MonoBehaviour
 
     private List<Vector3> forceVectorList = new List<Vector3>();
 
+    void Start() => startingPosition = gameObject.transform.position;
 
     void FixedUpdate()
     {
-
-        //forceVectorList.Add(CalculateGravityForce());
         Vector3 runningForce = (CalculateRunningForce());
-        //Debug.Log(runningForce.x + " | Velo: " + velocityVector.x + " | Run: " + RunningSpeed);
         forceVectorList.Add(runningForce);
 
         CalculateNetForces();
