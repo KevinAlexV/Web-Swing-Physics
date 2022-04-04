@@ -18,6 +18,10 @@ public class UIManager : MonoBehaviour
     [SerializeField]
     private CinemachineVirtualCamera lookAtCamera;
 
+    [Header("Animations")]
+    [SerializeField]
+    private Animator dataPanelAnimator;
+
     [Header("UI Elements")]
     [SerializeField]
     private Text perspectiveTextField;
@@ -139,10 +143,10 @@ public class UIManager : MonoBehaviour
 
     public void ToggleDataPanel()
     {
-        if (!isDataPanelOut) {}
-            // Open it
-        else  {}
-            // Close it
+        if (!isDataPanelOut) 
+            dataPanelAnimator.SetBool("isDataPanelOut", true);
+        else 
+            dataPanelAnimator.SetBool("isDataPanelOut", false);
 
         isDataPanelOut = !isDataPanelOut;
     }
