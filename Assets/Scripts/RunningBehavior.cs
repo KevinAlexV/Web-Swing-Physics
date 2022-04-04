@@ -7,9 +7,8 @@ using UnityEngine;
 
 public class RunningBehavior : MonoBehaviour
 {
-    [SerializeField]
     [Range(0.0f, 10.4f)]
-    private float RunningSpeed;
+    public float RunningSpeed;
 
     [Header("Position Data")]
     public Vector3 startingPosition;

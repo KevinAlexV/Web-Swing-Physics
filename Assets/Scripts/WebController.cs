@@ -1,10 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public class WebController : MonoBehaviour
 {
+    [Header("Pivot Data")]
     [SerializeField]
     private BasicPendulumBehavior pendulum;
     [SerializeField]
@@ -61,7 +61,7 @@ public class WebController : MonoBehaviour
             web.startColor = Color.white;
             web.endColor = Color.white;
             web.startWidth = 0.1f;
-            web.endWidth = 0.1f;
+            web.endWidth = 0.2f;
             web.useWorldSpace = false;
             webRenderers.Add(web);
         }

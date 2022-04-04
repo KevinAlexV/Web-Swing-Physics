@@ -11,6 +11,9 @@ public class UIManager : MonoBehaviour
     [SerializeField]
     [Tooltip("Required to reset web swinging pivot points")]
     private WebController webController;
+    [SerializeField]
+    [Tooltip("Used to update runner velocity within the simulation's UI")]
+    private RunningBehavior runner;
 
     [Header("Cameras")]
     [SerializeField]
@@ -22,7 +25,7 @@ public class UIManager : MonoBehaviour
     [SerializeField]
     private Animator dataPanelAnimator;
 
-    [Header("UI Elements")]
+    [Header("UI Elements (Data Panel)")]
     [SerializeField]
     private Text perspectiveTextField;
     [Space]
@@ -55,6 +58,10 @@ public class UIManager : MonoBehaviour
     [SerializeField]
     private Text angularMomentumZ;
 
+    [Header("UI Elements (Input)")]
+    [SerializeField]
+    private InputField runnerVelocityInput;
+
     // Game State Booleans
     private bool isPOV = false;
     private bool isPaused = false;
@@ -66,6 +73,9 @@ public class UIManager : MonoBehaviour
         lookAtCamera.enabled = true;
         povCamera.enabled = false;
         isPOV = false;
+
+        // Set default velocity input
+        runnerVelocityInput.text = runner.RunningSpeed.ToString("0.00") + " m/s";
     }
 
     private void Update() => UpdateDataPanel(); 
@@ -149,5 +159,16 @@ public class UIManager : MonoBehaviour
             dataPanelAnimator.SetBool("isDataPanelOut", false);
 
         isDataPanelOut = !isDataPanelOut;
+    }
+
+    public void UpdateRunnerVelocity() 
+    { 
+        string inputVelocity = runnerVelocityInput.text;
+
+        // Update runner speed with input value
+        runner.RunningSpeed = float.Parse(inputVelocity);
+
+        // Update UI with new value
+        runnerVelocityInput.text = runner.RunningSpeed.ToString("0.00") + " m/s";
     }
 }
