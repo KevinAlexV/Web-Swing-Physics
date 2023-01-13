@@ -4,5 +4,8 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/SpiderManPendulum.unity
+    guid: d4c768039434fca418175edb62f8556d
   m_configObjects: {}
